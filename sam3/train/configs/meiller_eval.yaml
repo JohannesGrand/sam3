@@ -2,16 +2,18 @@
 defaults:
   - _self_
 
+# the above is required at the top of the script for training to work
+
 # ============================================================================
 # Paths Configuration (Chage this to your own paths)
 # ============================================================================
+
 paths:
-  # change these:  
-  checkpoint_path: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1/checkpoints/checkpoint.pt # only change directory, checkpoint file should be the same
+  checkpoint_path: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1/checkpoints/final_fixed_weights.pt
+  #checkpoint_path: /home/jovyan/work/sam3.pt
+  roboflow_vl_100_root: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning 
   experiment_log_dir: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1_eval
-  # this should be static
-  roboflow_vl_100_root: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning/images/test_vault/ 
-  bpe_path: /home/jovyan/work/master-thesis-grandien/src/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz
+  bpe_path: /home/jovyan/work/master-thesis-grandien/src/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz # This should be under assets/bpe_simple_vocab_16e6.txt.gz
 
 
 # Roboflow dataset configuration
@@ -241,6 +243,29 @@ trainer:
       _target_: sam3.train.loss.sam3_loss.DummyLoss
 
   data:
+    train:
+      _target_: sam3.train.data.torch_dataset.TorchDataset
+      dataset:
+        _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
+        limit_ids: ${roboflow_train.num_images}
+        transforms: ${roboflow_train.train_transforms}
+        load_segmentation: ${scratch.enable_segmentation}
+        max_ann_per_img: 500000
+        multiplier: 1
+        max_train_queries: 50000
+        max_val_queries: 50000
+        training: true
+        use_caching: False
+        img_folder: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/train/
+        ann_file: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/train/annotations/coco_instance_segmentation.json
+
+      shuffle: True
+      batch_size: ${scratch.train_batch_size}
+      num_workers: ${scratch.num_train_workers}
+      pin_memory: True
+      drop_last: True
+      collate_fn: ${scratch.collate_fn}
+
     val:
       _target_: sam3.train.data.torch_dataset.TorchDataset
       dataset:
@@ -252,8 +277,10 @@ trainer:
           include_negatives: true
           category_chunk_size: 2 # Note: You can increase this based on the memory of your GPU.
           _partial_: true
-        img_folder: ${paths.roboflow_vl_100_root}
-        ann_file: ${paths.roboflow_vl_100_root}/annotations/coco_instance_segmentation.json
+        #img_folder: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/valid/
+        #ann_file: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/valid/annotations/coco_instance_segmentation.json
+        img_folder: ${paths.roboflow_vl_100_root}/images/test_vault/
+        ann_file: ${paths.roboflow_vl_100_root}/images/test_vault/annotations/coco_instance_segmentation.json
         transforms: ${roboflow_train.val_transforms}
         max_ann_per_img: 100000
         multiplier: 1
@@ -273,7 +300,7 @@ trainer:
     device: cpus
     eval_mode: true
     enable_segmentation: ${scratch.enable_segmentation} # Warning: Enable this if using segmentation.
-    checkpoint_path: ${paths.checkpoint_path} # Path to the finetuned checkpoint
+    checkpoint_path: ${paths.checkpoint_path}
 
   meters:
     val:
@@ -288,7 +315,7 @@ trainer:
           maxdets: 100
           pred_file_evaluators:
             - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
-              gt_path: ${paths.roboflow_vl_100_root}/annotations/coco_instance_segmentation.json
+              gt_path: ${paths.roboflow_vl_100_root}/images/test_vault/annotations/coco_instance_segmentation.json
               tide: False
               iou_type: "segm"
 
