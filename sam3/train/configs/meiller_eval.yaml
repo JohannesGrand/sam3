@@ -7,8 +7,8 @@ defaults:
 # ============================================================================
 paths:
   # change these:  
-  checkpoint_path: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1/checkpoints/
-  base_experiment_log_dir: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1_eval
+  checkpoint_path: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1/checkpoints/checkpoint.pt # only change directory, checkpoint file should be the same
+  experiment_log_dir: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1_eval
   # this should be static
   roboflow_vl_100_root: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning/images/test_vault/ 
   bpe_path: /home/jovyan/work/master-thesis-grandien/src/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz
