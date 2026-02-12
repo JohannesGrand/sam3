@@ -9,8 +9,8 @@ defaults:
 # ============================================================================
 
 paths:
-  checkpoint_path: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1/checkpoints/final_fixed_weights.pt
-  #checkpoint_path: /home/jovyan/work/sam3.pt
+  #checkpoint_path: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1/checkpoints/final_fixed_weights.pt
+  checkpoint_path: /home/jovyan/work/sam3.pt
   roboflow_vl_100_root: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning 
   experiment_log_dir: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1_eval
   bpe_path: /home/jovyan/work/master-thesis-grandien/src/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz # This should be under assets/bpe_simple_vocab_16e6.txt.gz
