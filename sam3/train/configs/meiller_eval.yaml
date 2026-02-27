@@ -9,10 +9,10 @@ defaults:
 # ============================================================================
 
 paths:
-  #checkpoint_path: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1/checkpoints/final_fixed_weights.pt
-  checkpoint_path: /home/jovyan/work/sam3.pt
+  checkpoint_path: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed_with_valid/checkpoints/fixed_checkpoint.pt
+  #checkpoint_path: /home/jovyan/work/sam3.pt
   roboflow_vl_100_root: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning 
-  experiment_log_dir: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1_eval
+  experiment_log_dir: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed_with_valid_eval
   bpe_path: /home/jovyan/work/master-thesis-grandien/src/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz # This should be under assets/bpe_simple_vocab_16e6.txt.gz
 
 
@@ -256,8 +256,8 @@ trainer:
         max_val_queries: 50000
         training: true
         use_caching: False
-        img_folder: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/train/
-        ann_file: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/train/annotations/coco_instance_segmentation.json
+        img_folder: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed_with_valid/train/
+        ann_file: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed_with_valid/train/annotations/coco_instance_segmentation.json
 
       shuffle: True
       batch_size: ${scratch.train_batch_size}
@@ -279,8 +279,8 @@ trainer:
           _partial_: true
         #img_folder: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/valid/
         #ann_file: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/valid/annotations/coco_instance_segmentation.json
-        img_folder: ${paths.roboflow_vl_100_root}/images/test_vault/
-        ann_file: ${paths.roboflow_vl_100_root}/images/test_vault/annotations/coco_instance_segmentation.json
+        img_folder: ${paths.roboflow_vl_100_root}/training_runs/10shot_finetuning_seed_test_is_valid/valid/
+        ann_file: ${paths.roboflow_vl_100_root}/training_runs/10shot_finetuning_seed_test_is_valid/valid/annotations/coco_instance_segmentation.json
         transforms: ${roboflow_train.val_transforms}
         max_ann_per_img: 100000
         multiplier: 1
@@ -315,7 +315,7 @@ trainer:
           maxdets: 100
           pred_file_evaluators:
             - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
-              gt_path: ${paths.roboflow_vl_100_root}/images/test_vault/annotations/coco_instance_segmentation.json
+              gt_path: ${paths.roboflow_vl_100_root}/training_runs/10shot_finetuning_seed_test_is_valid/valid/annotations/coco_instance_segmentation.json
               tide: False
               iou_type: "segm"
 
@@ -427,4 +427,4 @@ all_roboflow_supercategories:
 # ============================================================================
 
 roboflow_prompts:
-  MeillerKipperWireDetection: '[{"id": 1, "name": "wire loom"}, {"id": 2, "name": "wire loom connector"}]'
+  MeillerKipperWireDetection: '[{"id": 1, "name": "wire loom"}]'
