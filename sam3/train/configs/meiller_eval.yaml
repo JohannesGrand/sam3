@@ -18,8 +18,8 @@ paths:
   bpe_path: /home/jovyan/work/master-thesis-grandien/src/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz
 
 
-# Roboflow dataset configuration
-roboflow_train:
+# meiller dataset configuration
+meiller_train:
   num_images: null # Note: This is the number of images used for training. If null, all images are used.
   supercategory: MeillerKipperWireDetection
 
@@ -205,7 +205,7 @@ scratch:
     _target_: sam3.train.data.collator.collate_fn_api
     _partial_: true
     repeats: ${scratch.hybrid_repeats}
-    dict_key: roboflow100
+    dict_key: meiller100
     with_seg_masks: ${scratch.enable_segmentation} # Note: Set this to true if using segmentation masks!
 
   gradient_accumulation_steps: 1
@@ -240,7 +240,7 @@ trainer:
     gradient_as_bucket_view: True
 
   loss:
-    all: ${roboflow_train.loss}
+    all: ${meiller_train.loss}
     default:
       _target_: sam3.train.loss.sam3_loss.DummyLoss
 
@@ -249,8 +249,8 @@ trainer:
       _target_: sam3.train.data.torch_dataset.TorchDataset
       dataset:
         _target_: sam3.train.data.sam3_image_dataset.Sam3ImageDataset
-        limit_ids: ${roboflow_train.num_images}
-        transforms: ${roboflow_train.train_transforms}
+        limit_ids: ${meiller_train.num_images}
+        transforms: ${meiller_train.train_transforms}
         load_segmentation: ${scratch.enable_segmentation}
         max_ann_per_img: 500000
         multiplier: 1
@@ -258,8 +258,8 @@ trainer:
         max_val_queries: 50000
         training: true
         use_caching: False
-        # img_folder: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/train/
-        # ann_file: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/train/annotations/coco_instance_segmentation.json
+        # img_folder: ${paths.meiller_vl_100_root}/10shot_finetuning_seed1/train/
+        # ann_file: ${paths.meiller_vl_100_root}/10shot_finetuning_seed1/train/annotations/coco_instance_segmentation.json
 
       shuffle: True
       batch_size: ${scratch.train_batch_size}
@@ -275,13 +275,13 @@ trainer:
         load_segmentation: ${scratch.enable_segmentation}
         coco_json_loader:
           _target_: sam3.train.data.coco_json_loaders.COCO_FROM_JSON
-          prompts: ${roboflow_prompts.${roboflow_train.supercategory}}
+          prompts: ${meiller_prompts.${meiller_train.supercategory}}
           include_negatives: true
           category_chunk_size: 2 # Note: You can increase this based on the memory of your GPU.
           _partial_: true
         img_folder: ${paths.ground_truth_test_dataset_root}/
         ann_file: ${paths.ground_truth_test_dataset_root}/annotations/coco_instance_segmentation.json
-        transforms: ${roboflow_train.val_transforms}
+        transforms: ${meiller_train.val_transforms}
         max_ann_per_img: 100000
         multiplier: 1
         training: false
@@ -304,11 +304,11 @@ trainer:
 
   meters:
     val:
-      roboflow100:
+      meiller100:
         detection:
           _target_: sam3.eval.coco_writer.PredictionDumper
           iou_type: "segm"
-          dump_dir: ${launcher.experiment_log_dir}/dumps/roboflow/${roboflow_train.supercategory}
+          dump_dir: ${launcher.experiment_log_dir}/dumps/meiller/${meiller_train.supercategory}
           merge_predictions: True
           postprocessor: ${scratch.mask_postprocessor_thresholded}
           gather_pred_via_filesys: ${scratch.gather_pred_via_filesys}
@@ -388,7 +388,7 @@ trainer:
       flush_secs: 120
       should_log: True
     wandb_writer: null
-    log_dir: ${launcher.experiment_log_dir}/logs/${roboflow_train.supercategory}
+    log_dir: ${launcher.experiment_log_dir}/logs/${meiller_train.supercategory}
     log_freq: 10
 
 # ============================================================================
@@ -419,12 +419,12 @@ submitit:
 # Supercategories
 # ============================================================================
 
-all_roboflow_supercategories:
+all_meiller_supercategories:
   - MeillerKipperWireDetection
 
 # ============================================================================
 # Category Prompts (for validation/test)
 # ============================================================================
 
-roboflow_prompts:
+meiller_prompts:
   MeillerKipperWireDetection: '[{"id": 1, "name": "wire loom"}]'
