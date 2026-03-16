@@ -8,12 +8,14 @@ defaults:
 # Paths Configuration (Chage this to your own paths)
 # ============================================================================
 
+edit_here: 
+  training_dir_name: 0shot_eval_prompt_wire_loom
+
 paths:
-  #checkpoint_path: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1/checkpoints/final_fixed_weights.pt
-  checkpoint_path: /home/jovyan/work/sam3.pt
-  roboflow_vl_100_root: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning 
-  experiment_log_dir: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/10shot_finetuning_seed1_eval
-  bpe_path: /home/jovyan/work/master-thesis-grandien/src/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz # This should be under assets/bpe_simple_vocab_16e6.txt.gz
+  meiller_training_dir_root: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning/training_runs/${edit_here.training_dir_name}
+  experiment_log_dir: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/${edit_here.training_dir_name}
+  ground_truth_test_dataset_root: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning/test_dataset
+  bpe_path: /home/jovyan/work/master-thesis-grandien/src/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz
 
 
 # Roboflow dataset configuration
@@ -89,7 +91,7 @@ roboflow_train:
       alpha: 0.3
       threshold: 0.4
       topk: 4
-    use_o2m_matcher_on_o2m_aux: false
+    use_o2m_matcher_on_o2m_aux: false # Another option is true
     loss_fns_find:
       - _target_: sam3.train.loss.loss_fns.Boxes
         weight_dict:
@@ -111,11 +113,11 @@ roboflow_train:
         focal_alpha: 0.25
         focal_gamma: 2.0
         weight_dict:
-          loss_mask: 50 # original value: 200.0
+          loss_mask: 200.0
           loss_dice: 10.0
         compute_aux: false
     loss_fn_semantic_seg:
-      _target_: sam3.train.loss.loss_fns.SemanticSegCriterion
+      _target_: sam3.losses.loss_fns.SemanticSegCriterion
       presence_head: True
       presence_loss: False  # Change
       focal: True
@@ -170,7 +172,7 @@ scratch:
   # Image processing parameters
   resolution: 1008
   consistent_transform: False
-  max_ann_per_img: 500
+  max_ann_per_img: 200
 
   # Normalization parameters
   train_norm_mean: [0.5, 0.5, 0.5]
@@ -188,7 +190,7 @@ scratch:
   gather_pred_via_filesys: false
 
   # Learning rate and scheduler parameters
-  lr_scale: 0.01 # original value: 0.1; paper suggests 1/10 learning rate
+  lr_scale: 0.1
   lr_transformer: ${times:8e-4,${scratch.lr_scale}}
   lr_vision_backbone: ${times:2.5e-4,${scratch.lr_scale}}
   lr_language_backbone: ${times:5e-5,${scratch.lr_scale}}
@@ -222,7 +224,7 @@ scratch:
 trainer:
 
   _target_: sam3.train.trainer.Trainer
-  skip_saving_ckpts: false
+  skip_saving_ckpts: true
   empty_gpu_mem_cache_after_eval: True
   skip_first_val: True
   max_epochs: 20
@@ -256,8 +258,8 @@ trainer:
         max_val_queries: 50000
         training: true
         use_caching: False
-        img_folder: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/train/
-        ann_file: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/train/annotations/coco_instance_segmentation.json
+        # img_folder: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/train/
+        # ann_file: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/train/annotations/coco_instance_segmentation.json
 
       shuffle: True
       batch_size: ${scratch.train_batch_size}
@@ -277,10 +279,8 @@ trainer:
           include_negatives: true
           category_chunk_size: 2 # Note: You can increase this based on the memory of your GPU.
           _partial_: true
-        #img_folder: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/valid/
-        #ann_file: ${paths.roboflow_vl_100_root}/10shot_finetuning_seed1/valid/annotations/coco_instance_segmentation.json
-        img_folder: ${paths.roboflow_vl_100_root}/images/test_vault/
-        ann_file: ${paths.roboflow_vl_100_root}/images/test_vault/annotations/coco_instance_segmentation.json
+        img_folder: ${paths.ground_truth_test_dataset_root}/
+        ann_file: ${paths.ground_truth_test_dataset_root}/annotations/coco_instance_segmentation.json
         transforms: ${roboflow_train.val_transforms}
         max_ann_per_img: 100000
         multiplier: 1
@@ -315,7 +315,7 @@ trainer:
           maxdets: 100
           pred_file_evaluators:
             - _target_: sam3.eval.coco_eval_offline.CocoEvaluatorOfflineWithPredFileEvaluators
-              gt_path: ${paths.roboflow_vl_100_root}/images/test_vault/annotations/coco_instance_segmentation.json
+              gt_path: ${paths.ground_truth_test_dataset_root}/annotations/coco_instance_segmentation.json
               tide: False
               iou_type: "segm"
 
@@ -329,7 +329,7 @@ trainer:
 
     gradient_clip:
       _target_: sam3.train.optim.optimizer.GradientClipper
-      max_norm: 1.0 # original value: 0.1
+      max_norm: 0.1
       norm_type: 2
 
     param_group_modifiers:
@@ -423,8 +423,8 @@ all_roboflow_supercategories:
   - MeillerKipperWireDetection
 
 # ============================================================================
-# Category Prompts (for validation/test - 2 categories)
+# Category Prompts (for validation/test)
 # ============================================================================
 
 roboflow_prompts:
-  MeillerKipperWireDetection: '[{"id": 1, "name": "wire loom"}, {"id": 2, "name": "wire loom connector"}]'
+  MeillerKipperWireDetection: '[{"id": 1, "name": "wire loom"}]'
