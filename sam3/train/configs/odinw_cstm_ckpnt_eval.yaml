@@ -7,10 +7,17 @@ defaults:
 # ============================================================================
 #  python sam3/train/train.py -c configs/odinw_text_only.yaml --use-cluster 1 --partition ${PARTITION} --account ${ACCOUNT} --qos ${QoS}
 
+# this script if a copy of "odinw_text_only.yaml" 
+# the only change (apart from the paths) is that a custom checkpoint is loaded to evaluate the performance depreciation after fine-tuning
+
+edit_here: 
+  training_output_dir_name: Xshot_finetuning_seed_Y
+
 paths:
-  odinw_data_root: <YOUR_DATA_DIR>
-  experiment_log_dir: <YOUR EXPERIMENET LOG_DIR>
-  bpe_path: <BPE_PATH> # This should be under sam3/assets/bpe_simple_vocab_16e6.txt.gz
+  checkpoint_path:  /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/${edit_here.training_output_dir_name}/checkpoints/fixed_checkpoint.pt
+  odinw_data_root: /home/jovyan/work/DATASET/odinw
+  experiment_log_dir: /home/jovyan/work/master-thesis-grandien/sam3_fine_tuning_output/odinw_eval/${edit_here.training_output_dir_name}
+  bpe_path: /home/jovyan/work/master-thesis-grandien/src/sam3/sam3/assets/bpe_simple_vocab_16e6.txt.gz
 
 
 supercategory_tuple: ${all_odinw_supercategories.${string:${submitit.job_array.task_index}}}
@@ -114,6 +121,7 @@ trainer:
     device: cpus
     eval_mode: true # Set to false if training
     enable_segmentation: ${scratch.enable_segmentation} # Warning: Enable this if using segmentation.
+    checkpoint_path: ${paths.checkpoint_path}
 
   meters:
     val:
